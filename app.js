@@ -9,6 +9,39 @@ let isPlaying = false;
 let playbackSpeed = 1;
 let playbackInterval = null;
 
+// Map calibration constants
+const MAP_CENTER_X = 0.475;  // Horizontal position of the Man (0-1, where 0.5 is center)
+const MAP_CENTER_Y = 0.43; // Vertical position of the Man (0-1, where 0.5 is center)
+const MAP_SCALE = 0.455;    // Scale factor to convert from normalized to pixel coordinates
+
+// Street distances from the Man (in feet) - from dimensions document
+// Esplanade: 2,500'
+// Atwood block: +400' = 2,900'
+// Blocks A-I: +250' each
+// Blocks I-K: +150' each
+// Kilgore diameter: 11,510' -> radius: 5,755'
+const STREET_DISTANCES_FEET = {
+    'Esplanade': 2500,
+    'A': 2900,  // Atwood
+    'B': 3180,  // Burnside
+    'C': 3460,  // Carver
+    'D': 3740,  // Dickens
+    'E': 4020,  // Ellison
+    'F': 4500,  // Farmer (mid-city double block, +450')
+    'G': 4780,  // Gibson
+    'H': 5060,  // Heinlein
+    'I': 5340,  // Ishiguro
+    'J': 5520,  // Jericho
+    'K': 5755   // Kilgore (from diameter measurement)
+};
+
+// Convert to ratios (0-1) relative to Kilgore as the outermost
+const MAX_RADIUS_FEET = STREET_DISTANCES_FEET['K'];
+const STREET_DISTANCES = {};
+Object.keys(STREET_DISTANCES_FEET).forEach(street => {
+    STREET_DISTANCES[street] = STREET_DISTANCES_FEET[street] / MAX_RADIUS_FEET * MAP_SCALE;
+});
+
 // Initialize the application
 async function init() {
     try {
@@ -96,34 +129,33 @@ function parseCampLocation(location, campName) {
     const minutes = parseInt(timeMatch[2]);
     const totalHours = hours + minutes / 60;
 
-    // Parse the street letter (arc position)
-    const streetMatch = arcStreet.match(/([A-L])/i);
-    if (!streetMatch) return null;
-    const street = streetMatch[1].toUpperCase();
+    // Parse the street letter or name (arc position)
+    let street = null;
+
+    // Check for Esplanade
+    if (arcStreet.toLowerCase().includes('esplanade')) {
+        street = 'Esplanade';
+    } else {
+        const streetMatch = arcStreet.match(/([A-L])/i);
+        if (streetMatch) {
+            street = streetMatch[1].toUpperCase();
+        }
+    }
+
+    if (!street) return null;
 
     // Convert time to angle in radians
     // 6:00 = π radians (straight down/south)
     // 12:00 = 0 radians (straight up/north)
     const angle = (totalHours / 12) * 2 * Math.PI;
 
-    // Street distances from center (calibrated to match the map)
-    // The city extends from about 0.08 to 0.52 of the image radius
-    const streetDistances = {
-        'A': 0.08,
-        'B': 0.12,
-        'C': 0.16,
-        'D': 0.20,
-        'E': 0.24,
-        'F': 0.28,
-        'G': 0.32,
-        'H': 0.36,
-        'I': 0.40,
-        'J': 0.44,
-        'K': 0.48,
-        'L': 0.52
-    };
+    // Use actual street distances from dimensions document
+    let radius = STREET_DISTANCES[street];
 
-    let radius = streetDistances[street] || 0.3;
+    if (!radius) {
+        console.warn(`Unknown street: ${street} for camp ${campName}`);
+        return null;
+    }
 
     // Apply exact location offset
     // "facing man" means on the outer side (add offset outward)
@@ -136,9 +168,9 @@ function parseCampLocation(location, campName) {
         radius -= offsetAmount; // Inner side of the street
     }
 
-    // Center of the Man in the image
-    const centerX = 0.5;
-    const centerY = 0.50;
+    // Center of the Man in the image (using global calibration constants)
+    const centerX = MAP_CENTER_X;
+    const centerY = MAP_CENTER_Y;
 
     // Calculate position using polar to cartesian conversion
     // angle = 0 at 12:00 (top), π at 6:00 (bottom)
@@ -171,15 +203,11 @@ function drawStreets(canvas, mapImage) {
 
     const ctx = canvas.getContext('2d');
 
-    const centerX = canvas.width * 0.5;
-    const centerY = canvas.height * 0.50;
+    const centerX = canvas.width * MAP_CENTER_X;
+    const centerY = canvas.height * MAP_CENTER_Y;
 
-    // Street radii
-    const streets = {
-        'A': 0.08, 'B': 0.12, 'C': 0.16, 'D': 0.20,
-        'E': 0.24, 'F': 0.28, 'G': 0.32, 'H': 0.36,
-        'I': 0.40, 'J': 0.44, 'K': 0.48, 'L': 0.52
-    };
+    // Use the accurate street distances from the dimensions document
+    const streets = STREET_DISTANCES;
 
     // Draw arcs for each street from 2:00 to 10:00
     const startAngle = (2 / 12) * 2 * Math.PI; // 2:00
