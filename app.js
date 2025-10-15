@@ -160,7 +160,7 @@ function parseCampLocation(location, campName) {
     // Apply exact location offset
     // "facing man" means on the outer side (add offset outward)
     // "facing mountain" means on the inner side (subtract offset inward)
-    const offsetAmount = 0.015; // Small offset for facing direction
+    const offsetAmount = 0.005; // Small offset for facing direction
 
     if (exactLocation.toLowerCase().includes('facing man')) {
         radius += offsetAmount; // Outer side of the street
@@ -435,8 +435,15 @@ function showEventStatus(event) {
     const statusType = document.getElementById('status-type');
     const statusDetails = document.getElementById('status-details');
 
-    // Set title
-    statusTitle.textContent = event.title;
+    // Set title with camp name
+    let titleText = event.title;
+    if (event.hosted_by_camp) {
+        const camp = campsData.find(c => c.uid === event.hosted_by_camp);
+        if (camp) {
+            titleText += ` (${camp.name})`;
+        }
+    }
+    statusTitle.textContent = titleText;
 
     // Set type badge
     statusType.textContent = event.event_type?.label || 'Event';
@@ -468,8 +475,12 @@ function showEventStatus(event) {
     // Location info
     if (event.hosted_by_camp) {
         const camp = campsData.find(c => c.uid === event.hosted_by_camp);
-        if (camp) {
-            details.push(`📍 ${camp.name} (${camp.location_string || 'Location TBD'})`);
+        if (camp && camp.location_string) {
+            let locationText = camp.location_string;
+            if (camp.location && camp.location.exact_location) {
+                locationText += ` (${camp.location.exact_location})`;
+            }
+            details.push(`📍 ${locationText}`);
         }
     } else if (event.other_location) {
         details.push(`📍 ${event.other_location}`);
