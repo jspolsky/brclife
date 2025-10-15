@@ -223,12 +223,16 @@ header h1 {
 }
 
 .legend-item .dot {
-    width: 10px;
-    height: 10px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: currentColor;
-    box-shadow: 0 0 5px currentColor;
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    animation: pulse 2s ease-in-out infinite;
+    font-size: 14px;
 }
 
 .event-status-bar {
