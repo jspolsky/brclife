@@ -485,8 +485,14 @@ function getActiveEvents() {
 
 // Calculate day/night darkness level (0 = full day, 1 = full night)
 function getDarknessLevel(time) {
-    const hours = time.getHours();
-    const minutes = time.getMinutes();
+    // Get hours and minutes in Pacific Time
+    const pacificTimeString = time.toLocaleString('en-US', {
+        timeZone: 'America/Los_Angeles',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false
+    });
+    const [hours, minutes] = pacificTimeString.split(':').map(Number);
     const timeInMinutes = hours * 60 + minutes;
 
     // Sunrise: 6:00 AM (360 min) to 6:30 AM (390 min) - fade from night to day
@@ -539,7 +545,8 @@ function updateTimeDisplay() {
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
+        timeZone: 'America/Los_Angeles'
     };
 
     document.getElementById('current-time').textContent =
@@ -650,9 +657,10 @@ function showEventStatus(event) {
             month: 'short',
             day: 'numeric',
             hour: 'numeric',
-            minute: '2-digit'
+            minute: '2-digit',
+            timeZone: 'America/Los_Angeles'
         };
-        details.push(`🕐 ${start.toLocaleString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`);
+        details.push(`🕐 ${start.toLocaleString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' })}`);
     }
 
     // Location info
