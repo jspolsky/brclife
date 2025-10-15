@@ -410,11 +410,34 @@ function renderEventMarkers() {
         marker.style.left = `${coords.x * mapWidth}px`;
         marker.style.top = `${coords.y * mapHeight}px`;
 
+        // Add emoji based on event type
+        const emoji = getEventEmoji(event.event_type?.abbr);
+        marker.textContent = emoji;
+        marker.style.fontSize = '16px';
+        marker.style.lineHeight = '12px';
+        marker.style.display = 'flex';
+        marker.style.alignItems = 'center';
+        marker.style.justifyContent = 'center';
+
         marker.addEventListener('mouseenter', () => showEventStatus(event));
         marker.addEventListener('mouseleave', hideEventStatus);
 
         container.appendChild(marker);
     });
+}
+
+// Get emoji for event type
+function getEventEmoji(eventType) {
+    const emojiMap = {
+        'prty': '🎵',  // Music/Party
+        'work': '🎓',  // Class/Workshop
+        'food': '🍕',  // Food
+        'tea': '🍹',   // Beverages
+        'arts': '🎨',  // Arts & Crafts
+        'adlt': '🔞',  // Mature Audiences
+        'othr': '✨'   // Other
+    };
+    return emojiMap[eventType] || '✨';
 }
 
 // Get coordinates for an event
