@@ -44,6 +44,14 @@ header h1 {
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
+.map-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+}
+
 #map-image {
     width: 100%;
     height: auto;
@@ -76,7 +84,7 @@ header h1 {
     border-radius: 50%;
     transform: translate(-50%, -50%);
     animation: pulse 2s ease-in-out infinite;
-    cursor: pointer;
+    cursor: pointer !important;
     pointer-events: all;
     box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
     transition: all 0.3s ease;

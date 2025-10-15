@@ -9,6 +9,11 @@ let isPlaying = false;
 let playbackSpeed = 1;
 let playbackInterval = null;
 
+// Zoom and pan state
+let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+
 // Map calibration constants
 const MAP_CENTER_X = 0.475;  // Horizontal position of the Man (0-1, where 0.5 is center)
 const MAP_CENTER_Y = 0.43; // Vertical position of the Man (0-1, where 0.5 is center)
@@ -22,16 +27,16 @@ const MAP_SCALE = 0.455;    // Scale factor to convert from normalized to pixel 
 // Kilgore diameter: 11,510' -> radius: 5,755'
 const STREET_DISTANCES_FEET = {
     'Esplanade': 2500,
-    'A': 2900,  // Atwood
-    'B': 3180,  // Burnside
-    'C': 3460,  // Carver
-    'D': 3740,  // Dickens
-    'E': 4020,  // Ellison
-    'F': 4500,  // Farmer (mid-city double block, +450')
-    'G': 4780,  // Gibson
-    'H': 5060,  // Heinlein
-    'I': 5340,  // Ishiguro
-    'J': 5520,  // Jericho
+    'A': 2930,  // Atwood
+    'B': 3210,  // Burnside
+    'C': 3490,  // Carver
+    'D': 3770,  // Dickens
+    'E': 4050,  // Ellison
+    'F': 4530,  // Farmer (mid-city double block, +450')
+    'G': 4810,  // Gibson
+    'H': 5090,  // Heinlein
+    'I': 5370,  // Ishiguro
+    'J': 5550,  // Jericho
     'K': 5755   // Kilgore (from diameter measurement)
 };
 
@@ -90,6 +95,14 @@ function createCampLocationMap() {
         }
     });
     console.log(`Mapped ${mappedCount} camps to coordinates`);
+}
+
+// Apply zoom and pan transform to the viewport
+function applyTransform() {
+    const viewport = document.querySelector('.map-viewport');
+    if (!viewport) return;
+
+    viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
 }
 
 // Parse a camp location object into pixel coordinates
@@ -276,6 +289,9 @@ function setupEventListeners() {
     const playPauseBtn = document.getElementById('play-pause');
     const speedBtn = document.getElementById('speed-control');
     const resetBtn = document.getElementById('reset');
+    const mapContainer = document.querySelector('.map-container');
+
+    console.log('Setting up event listeners, mapContainer:', mapContainer);
 
     slider.addEventListener('input', (e) => {
         const minutes = parseInt(e.target.value);
@@ -286,6 +302,88 @@ function setupEventListeners() {
     playPauseBtn.addEventListener('click', togglePlayback);
     speedBtn.addEventListener('click', changeSpeed);
     resetBtn.addEventListener('click', reset);
+
+    if (!mapContainer) {
+        console.error('Map container not found!');
+        return;
+    }
+
+    // Zoom with mouse wheel
+    mapContainer.addEventListener('wheel', (e) => {
+        console.log('Wheel event detected', e);
+        e.preventDefault();
+
+        const zoomIntensity = 0.1;
+        const delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+        const newZoom = Math.max(0.5, Math.min(5, zoomLevel + delta));
+
+        // Get mouse position relative to container
+        const rect = mapContainer.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Calculate the point under the mouse in the current zoom
+        const pointX = (mouseX - panX) / zoomLevel;
+        const pointY = (mouseY - panY) / zoomLevel;
+
+        // Update zoom
+        zoomLevel = newZoom;
+
+        // Adjust pan to keep the point under the mouse
+        panX = mouseX - pointX * zoomLevel;
+        panY = mouseY - pointY * zoomLevel;
+
+        applyTransform();
+    });
+
+    // Pan with click and drag
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let panStartX = 0;
+    let panStartY = 0;
+
+    mapContainer.addEventListener('mousedown', (e) => {
+        console.log('Mousedown event', e.target, e.target.classList);
+        // Only start dragging on left click and not on event markers
+        if (e.button === 0 && !e.target.classList.contains('event-marker')) {
+            console.log('Starting drag');
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            panStartX = panX;
+            panStartY = panY;
+            mapContainer.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+    });
+
+    mapContainer.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            panX = panStartX + dx;
+            panY = panStartY + dy;
+            applyTransform();
+        }
+    });
+
+    mapContainer.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            mapContainer.style.cursor = 'grab';
+        }
+    });
+
+    mapContainer.addEventListener('mouseleave', () => {
+        if (isDragging) {
+            isDragging = false;
+            mapContainer.style.cursor = 'grab';
+        }
+    });
+
+    // Set initial cursor
+    mapContainer.style.cursor = 'grab';
 }
 
 // Toggle playback
