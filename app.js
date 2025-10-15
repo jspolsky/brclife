@@ -276,7 +276,6 @@ function setupEventListeners() {
     const playPauseBtn = document.getElementById('play-pause');
     const speedBtn = document.getElementById('speed-control');
     const resetBtn = document.getElementById('reset');
-    const closeDetailsBtn = document.getElementById('close-details');
 
     slider.addEventListener('input', (e) => {
         const minutes = parseInt(e.target.value);
@@ -287,7 +286,6 @@ function setupEventListeners() {
     playPauseBtn.addEventListener('click', togglePlayback);
     speedBtn.addEventListener('click', changeSpeed);
     resetBtn.addEventListener('click', reset);
-    closeDetailsBtn.addEventListener('click', closeEventDetails);
 }
 
 // Toggle playback
@@ -412,7 +410,8 @@ function renderEventMarkers() {
         marker.style.left = `${coords.x * mapWidth}px`;
         marker.style.top = `${coords.y * mapHeight}px`;
 
-        marker.addEventListener('click', () => showEventDetails(event));
+        marker.addEventListener('mouseenter', () => showEventStatus(event));
+        marker.addEventListener('mouseleave', hideEventStatus);
 
         container.appendChild(marker);
     });
@@ -429,15 +428,22 @@ function getEventCoordinates(event) {
     return null;
 }
 
-// Show event details
-function showEventDetails(event) {
-    const detailsPanel = document.getElementById('event-details');
+// Show event status in bottom bar
+function showEventStatus(event) {
+    const statusBar = document.getElementById('event-status-bar');
+    const statusTitle = document.getElementById('status-title');
+    const statusType = document.getElementById('status-type');
+    const statusDetails = document.getElementById('status-details');
 
-    document.getElementById('detail-title').textContent = event.title;
+    // Set title
+    statusTitle.textContent = event.title;
 
-    const typeElement = document.getElementById('detail-type');
-    typeElement.textContent = event.event_type?.label || 'Event';
-    typeElement.className = `detail-type ${event.event_type?.abbr || 'othr'}`;
+    // Set type badge
+    statusType.textContent = event.event_type?.label || 'Event';
+    statusType.className = `status-type ${event.event_type?.abbr || 'othr'}`;
+
+    // Build details
+    let details = [];
 
     // Find the current occurrence
     const currentOccurrence = event.occurrence_set.find(occ => {
@@ -456,33 +462,34 @@ function showEventDetails(event) {
             hour: 'numeric',
             minute: '2-digit'
         };
-        document.getElementById('detail-time').innerHTML =
-            `<strong>Time:</strong> ${start.toLocaleString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+        details.push(`🕐 ${start.toLocaleString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`);
     }
 
     // Location info
-    let locationText = '';
     if (event.hosted_by_camp) {
         const camp = campsData.find(c => c.uid === event.hosted_by_camp);
         if (camp) {
-            locationText = `<strong>Location:</strong> ${camp.name} (${camp.location_string || 'Location TBD'})`;
-            document.getElementById('detail-camp').innerHTML =
-                `<strong>Hosted by:</strong> ${camp.name}${camp.description ? '<br><em>' + camp.description.substring(0, 200) + '...</em>' : ''}`;
+            details.push(`📍 ${camp.name} (${camp.location_string || 'Location TBD'})`);
         }
     } else if (event.other_location) {
-        locationText = `<strong>Location:</strong> ${event.other_location}`;
+        details.push(`📍 ${event.other_location}`);
     }
-    document.getElementById('detail-location').innerHTML = locationText;
 
-    document.getElementById('detail-description').innerHTML =
-        `<strong>Description:</strong><br>${event.description || 'No description available.'}`;
+    // Description
+    if (event.description) {
+        details.push(`ℹ️ ${event.description}`);
+    }
 
-    detailsPanel.classList.remove('hidden');
+    statusDetails.innerHTML = details.join(' • ');
+
+    // Show the status bar
+    statusBar.classList.remove('hidden');
 }
 
-// Close event details
-function closeEventDetails() {
-    document.getElementById('event-details').classList.add('hidden');
+// Hide event status bar
+function hideEventStatus() {
+    const statusBar = document.getElementById('event-status-bar');
+    statusBar.classList.add('hidden');
 }
 
 // Initialize on page load
