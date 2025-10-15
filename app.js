@@ -14,6 +14,9 @@ let zoomLevel = 1;
 let panX = 0;
 let panY = 0;
 
+// Filter state
+let hideLongEvents = false;
+
 // Map calibration constants
 const MAP_CENTER_X = 0.475;  // Horizontal position of the Man (0-1, where 0.5 is center)
 const MAP_CENTER_Y = 0.43; // Vertical position of the Man (0-1, where 0.5 is center)
@@ -289,6 +292,7 @@ function setupEventListeners() {
     const playPauseBtn = document.getElementById('play-pause');
     const speedBtn = document.getElementById('speed-control');
     const resetBtn = document.getElementById('reset');
+    const toggleLongEventsBtn = document.getElementById('toggle-long-events');
     const mapContainer = document.querySelector('.map-container');
 
     console.log('Setting up event listeners, mapContainer:', mapContainer);
@@ -302,6 +306,7 @@ function setupEventListeners() {
     playPauseBtn.addEventListener('click', togglePlayback);
     speedBtn.addEventListener('click', changeSpeed);
     resetBtn.addEventListener('click', reset);
+    toggleLongEventsBtn.addEventListener('click', toggleLongEvents);
 
     if (!mapContainer) {
         console.error('Map container not found!');
@@ -451,13 +456,29 @@ function reset() {
     updateVisualization();
 }
 
+// Toggle long events visibility
+function toggleLongEvents() {
+    hideLongEvents = !hideLongEvents;
+    const btn = document.getElementById('toggle-long-events');
+    btn.textContent = hideLongEvents ? 'Show Long Events' : 'Hide Long Events';
+    updateVisualization();
+}
+
 // Get events happening at current time
 function getActiveEvents() {
     return eventsData.filter(event => {
         return event.occurrence_set.some(occurrence => {
             const start = new Date(occurrence.start_time);
             const end = new Date(occurrence.end_time);
-            return currentTime >= start && currentTime <= end;
+            const isActive = currentTime >= start && currentTime <= end;
+
+            // If hiding long events, filter out events >= 6 hours
+            if (isActive && hideLongEvents) {
+                const durationHours = (end - start) / (1000 * 60 * 60);
+                return durationHours < 6;
+            }
+
+            return isActive;
         });
     });
 }
