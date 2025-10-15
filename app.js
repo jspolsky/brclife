@@ -6,7 +6,7 @@ let currentTime = new Date('2025-08-24T00:00:00-07:00');
 let startTime = new Date('2025-08-24T00:00:00-07:00');
 let endTime = new Date('2025-09-01T21:00:00-07:00');
 let isPlaying = false;
-let playbackSpeed = 1;
+let playbackSpeed = 10;
 let playbackInterval = null;
 
 // Zoom and pan state
@@ -66,7 +66,7 @@ async function init() {
         setupEventListeners();
 
         // Draw debug street overlay
-        drawStreetOverlay();
+        // drawStreetOverlay();
 
         // Initial render
         updateVisualization();
