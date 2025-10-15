@@ -185,10 +185,56 @@ header h1 {
     border: none;
 }
 
-.time-markers {
-    display: flex;
-    justify-content: space-between;
+.time-scale {
+    position: relative;
     margin-top: 10px;
+    height: 40px;
+}
+
+#time-ticks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 15px;
+    display: flex;
+}
+
+.tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.tick.hour {
+    height: 8px;
+}
+
+.tick.day {
+    height: 15px;
+    width: 2px;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+#time-labels {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    right: 0;
+    height: 22px;
+    display: flex;
+}
+
+.time-label {
+    position: absolute;
+    font-size: 0.85em;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.time-label.day {
+    font-weight: bold;
     font-size: 0.9em;
 }
 

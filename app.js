@@ -71,6 +71,9 @@ async function init() {
         // Draw debug street overlay
         // drawStreetOverlay();
 
+        // Generate time scale
+        generateTimeScale();
+
         // Initial render
         updateVisualization();
 
@@ -106,6 +109,51 @@ function applyTransform() {
     if (!viewport) return;
 
     viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+}
+
+// Generate time scale with day markers and hour ticks
+function generateTimeScale() {
+    const ticksContainer = document.getElementById('time-ticks');
+    const labelsContainer = document.getElementById('time-labels');
+
+    if (!ticksContainer || !labelsContainer) return;
+
+    const totalMinutes = 11520; // 8 days * 24 hours * 60 minutes
+    const days = ['Sun 8/24', 'Mon 8/25', 'Tue 8/26', 'Wed 8/27', 'Thu 8/28', 'Fri 8/29', 'Sat 8/30', 'Sun 8/31', 'Mon 9/1', 'Tue 9/2'];
+
+    // Generate ticks and labels for each day
+    for (let day = 0; day < 10; day++) {
+        const dayMinutes = day * 24 * 60;
+        const position = (dayMinutes / totalMinutes) * 100;
+
+        // Add day tick (tall)
+        const dayTick = document.createElement('div');
+        dayTick.className = 'tick day';
+        dayTick.style.left = `${position}%`;
+        ticksContainer.appendChild(dayTick);
+
+        // Add day label
+        if (day < 10) {
+            const dayLabel = document.createElement('div');
+            dayLabel.className = 'time-label day';
+            dayLabel.textContent = days[day];
+            dayLabel.style.left = `${position}%`;
+            labelsContainer.appendChild(dayLabel);
+        }
+
+        // Add hour ticks for this day (but not for the last day marker)
+        if (day < 9) {
+            for (let hour = 1; hour < 24; hour++) {
+                const hourMinutes = dayMinutes + (hour * 60);
+                const hourPosition = (hourMinutes / totalMinutes) * 100;
+
+                const hourTick = document.createElement('div');
+                hourTick.className = 'tick hour';
+                hourTick.style.left = `${hourPosition}%`;
+                ticksContainer.appendChild(hourTick);
+            }
+        }
+    }
 }
 
 // Parse a camp location object into pixel coordinates
