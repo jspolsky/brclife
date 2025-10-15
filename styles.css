@@ -1,0 +1,327 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 3em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+.map-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+#map-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0.85;
+}
+
+#event-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#event-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.event-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 2s ease-in-out infinite;
+    cursor: pointer;
+    pointer-events: all;
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    transition: all 0.3s ease;
+}
+
+.event-marker:hover {
+    width: 16px;
+    height: 16px;
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+}
+
+/* Event type colors */
+.prty { background-color: #ff0080; color: #ff0080; }
+.work { background-color: #00ffff; color: #00ffff; }
+.food { background-color: #ffff00; color: #ffff00; }
+.tea { background-color: #00ff00; color: #00ff00; }
+.arts { background-color: #ff8800; color: #ff8800; }
+.adlt { background-color: #ff0000; color: #ff0000; }
+.othr { background-color: #ffffff; color: #ffffff; }
+
+.controls {
+    background: rgba(0,0,0,0.7);
+    padding: 30px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.time-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#current-time {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#event-count {
+    font-size: 1.2em;
+    opacity: 0.8;
+}
+
+.slider-container {
+    margin: 20px 0;
+}
+
+#time-slider {
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(to right, #4a5568, #cbd5e0);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+#time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+}
+
+#time-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    border: none;
+}
+
+.time-markers {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.playback-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.playback-controls button {
+    padding: 12px 24px;
+    font-size: 1em;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.playback-controls button:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.5);
+}
+
+.legend {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.legend h3 {
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    font-size: 0.95em;
+}
+
+.legend-item .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: currentColor;
+    box-shadow: 0 0 5px currentColor;
+}
+
+.event-details {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.95);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+}
+
+.event-details.hidden {
+    display: none;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2em;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+#detail-title {
+    font-size: 2em;
+    margin-bottom: 15px;
+    padding-right: 30px;
+}
+
+.detail-type {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.detail-time, .detail-location, .detail-camp {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+.detail-description {
+    margin: 20px 0;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2em;
+    }
+
+    .subtitle {
+        font-size: 1em;
+    }
+
+    #current-time {
+        font-size: 1.3em;
+    }
+
+    .time-markers {
+        font-size: 0.7em;
+    }
+
+    .playback-controls button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+
+    .legend-items {
+        gap: 10px;
+    }
+
+    .legend-item {
+        font-size: 0.85em;
+        padding: 6px 12px;
+    }
+}

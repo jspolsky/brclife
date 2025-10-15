@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Rock City Life - Event Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Black Rock City Life</h1>
+            <p class="subtitle">Burning Man 2025 Event Visualizer</p>
+        </header>
+
+        <div class="map-container">
+            <img src="data/map.png" alt="Black Rock City Map" id="map-image">
+            <canvas id="event-canvas"></canvas>
+            <div id="event-markers"></div>
+        </div>
+
+        <div class="controls">
+            <div class="time-display">
+                <div id="current-time">Sunday, August 24, 2025 - 12:00 AM</div>
+                <div id="event-count">0 events happening now</div>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" id="time-slider" min="0" max="10080" value="0" step="15">
+                <div class="time-markers">
+                    <span>Sun 8/24</span>
+                    <span>Mon 8/25</span>
+                    <span>Tue 8/26</span>
+                    <span>Wed 8/27</span>
+                    <span>Thu 8/28</span>
+                    <span>Fri 8/29</span>
+                    <span>Sat 8/30</span>
+                    <span>Sun 8/31</span>
+                    <span>Mon 9/1</span>
+                </div>
+            </div>
+
+            <div class="playback-controls">
+                <button id="play-pause">▶ Play</button>
+                <button id="speed-control">Speed: 1x</button>
+                <button id="reset">Reset</button>
+            </div>
+
+            <div class="legend">
+                <h3>Event Types</h3>
+                <div class="legend-items">
+                    <div class="legend-item"><span class="dot prty"></span> Music/Party</div>
+                    <div class="legend-item"><span class="dot work"></span> Class/Workshop</div>
+                    <div class="legend-item"><span class="dot food"></span> Food</div>
+                    <div class="legend-item"><span class="dot tea"></span> Beverages</div>
+                    <div class="legend-item"><span class="dot arts"></span> Arts & Crafts</div>
+                    <div class="legend-item"><span class="dot adlt"></span> Mature Audiences</div>
+                    <div class="legend-item"><span class="dot othr"></span> Other</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="event-details" class="event-details hidden">
+            <button class="close-btn" id="close-details">×</button>
+            <h2 id="detail-title"></h2>
+            <div id="detail-type" class="detail-type"></div>
+            <div id="detail-time" class="detail-time"></div>
+            <div id="detail-location" class="detail-location"></div>
+            <div id="detail-description" class="detail-description"></div>
+            <div id="detail-camp" class="detail-camp"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
