@@ -108,7 +108,9 @@ function applyTransform() {
     const viewport = document.querySelector('.map-viewport');
     if (!viewport) return;
 
-    viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    // Use matrix for proper transform order: scale at origin, then translate
+    // This is equivalent to: scale(zoomLevel) translate(panX/zoomLevel, panY/zoomLevel)
+    viewport.style.transform = `matrix(${zoomLevel}, 0, 0, ${zoomLevel}, ${panX}, ${panY})`;
 }
 
 // Generate time scale with day markers and hour ticks
@@ -363,7 +365,6 @@ function setupEventListeners() {
 
     // Zoom with mouse wheel
     mapContainer.addEventListener('wheel', (e) => {
-        console.log('Wheel event detected', e);
         e.preventDefault();
 
         const zoomIntensity = 0.1;
@@ -375,16 +376,18 @@ function setupEventListeners() {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // Calculate the point under the mouse in the current zoom
-        const pointX = (mouseX - panX) / zoomLevel;
-        const pointY = (mouseY - panY) / zoomLevel;
+        // With matrix transform, the point under mouse in viewport coords is:
+        // viewportPoint = (containerPoint - pan) / zoom
+        const viewportX = (mouseX - panX) / zoomLevel;
+        const viewportY = (mouseY - panY) / zoomLevel;
 
-        // Update zoom
+        // After zoom change, we want the same viewport point under the mouse:
+        // mouseX = panX + viewportX * newZoom
+        // So: panX = mouseX - viewportX * newZoom
+        panX = mouseX - viewportX * newZoom;
+        panY = mouseY - viewportY * newZoom;
+
         zoomLevel = newZoom;
-
-        // Adjust pan to keep the point under the mouse
-        panX = mouseX - pointX * zoomLevel;
-        panY = mouseY - pointY * zoomLevel;
 
         applyTransform();
     });
