@@ -462,10 +462,51 @@ function getActiveEvents() {
     });
 }
 
+// Calculate day/night darkness level (0 = full day, 1 = full night)
+function getDarknessLevel(time) {
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const timeInMinutes = hours * 60 + minutes;
+
+    // Sunrise: 6:00 AM (360 min) to 6:30 AM (390 min) - fade from night to day
+    const sunriseStart = 6 * 60;      // 6:00 AM
+    const sunriseEnd = 6 * 60 + 30;   // 6:30 AM
+
+    // Sunset: 7:30 PM (1170 min) to 8:00 PM (1200 min) - fade from day to night
+    const sunsetStart = 19 * 60 + 30; // 7:30 PM
+    const sunsetEnd = 20 * 60;        // 8:00 PM
+
+    if (timeInMinutes < sunriseStart || timeInMinutes >= sunsetEnd) {
+        // Night time - full darkness
+        return 1;
+    } else if (timeInMinutes >= sunriseEnd && timeInMinutes < sunsetStart) {
+        // Day time - no darkness
+        return 0;
+    } else if (timeInMinutes >= sunriseStart && timeInMinutes < sunriseEnd) {
+        // Sunrise transition - fade from dark to light
+        const progress = (timeInMinutes - sunriseStart) / (sunriseEnd - sunriseStart);
+        return 1 - progress; // 1 -> 0
+    } else {
+        // Sunset transition - fade from light to dark
+        const progress = (timeInMinutes - sunsetStart) / (sunsetEnd - sunsetStart);
+        return progress; // 0 -> 1
+    }
+}
+
+// Update day/night overlay
+function updateDayNightOverlay() {
+    const overlay = document.getElementById('day-night-overlay');
+    if (!overlay) return;
+
+    const darkness = getDarknessLevel(currentTime);
+    overlay.style.opacity = darkness;
+}
+
 // Update visualization
 function updateVisualization() {
     updateTimeDisplay();
     renderEventMarkers();
+    updateDayNightOverlay();
 }
 
 // Update time display
