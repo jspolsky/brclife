@@ -362,7 +362,9 @@ function setupEventListeners() {
         const mapImage = document.getElementById('map-image');
         if (!mapImage) return;
 
-        const zoomIntensity = 0.1;
+        // Detect if this is a touchpad pinch (ctrlKey is set) vs mouse wheel
+        // Touchpad pinch gestures are much more sensitive, so use lower intensity
+        const zoomIntensity = e.ctrlKey ? 0.02 : 0.1;
         const delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
         const newZoom = Math.max(0.5, Math.min(5, zoomLevel + delta));
 
