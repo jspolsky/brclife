@@ -93,10 +93,6 @@ function createCampLocationMap() {
             if (coords) {
                 campLocationMap[camp.uid] = coords;
                 mappedCount++;
-                // Debug: log first few mappings
-                if (mappedCount <= 10) {
-                    console.log(`${camp.name}: frontage=${camp.location.frontage}, intersection=${camp.location.intersection}, exact=${camp.location.exact_location} -> (${coords.x.toFixed(3)}, ${coords.y.toFixed(3)})`);
-                }
             }
         }
     });
@@ -346,8 +342,6 @@ function setupEventListeners() {
     const toggleLongEventsBtn = document.getElementById('toggle-long-events');
     const mapContainer = document.querySelector('.map-container');
 
-    console.log('Setting up event listeners, mapContainer:', mapContainer);
-
     slider.addEventListener('input', (e) => {
         const minutes = parseInt(e.target.value);
         currentTime = new Date(startTime.getTime() + minutes * 60000);
@@ -359,10 +353,7 @@ function setupEventListeners() {
     resetBtn.addEventListener('click', reset);
     toggleLongEventsBtn.addEventListener('click', toggleLongEvents);
 
-    if (!mapContainer) {
-        console.error('Map container not found!');
-        return;
-    }
+    if (!mapContainer) return;
 
     // Zoom with mouse wheel
     mapContainer.addEventListener('wheel', (e) => {
@@ -387,7 +378,6 @@ function setupEventListeners() {
         // Calculate what proportion of the map the mouse is at (0-1)
         const proportionX = currentMouseX / currentWidth;
         const proportionY = currentMouseY / currentHeight;
-        console.log(`Mouse at (${currentMouseX.toFixed(1)}, ${currentMouseY.toFixed(1)}) on map, proportion (${proportionX.toFixed(3)}, ${proportionY.toFixed(3)})`);
 
         // Calculate the new dimensions after zoom
         const newWidth = mapImage.offsetWidth * newZoom;
@@ -396,23 +386,16 @@ function setupEventListeners() {
         // Calculate how much bigger/smaller the map got
         const widthChange = newWidth - currentWidth;
         const heightChange = newHeight - currentHeight;
-        console.log(`Zooming from ${zoomLevel.toFixed(2)} to ${newZoom.toFixed(2)}, size change (${widthChange.toFixed(1)}, ${heightChange.toFixed(1)})`);
 
         // Adjust pan so the mouse stays at the same proportional position
         // If mouse is at 50% (middle), pan shifts by half the size change
         // If mouse is at 0% (left/top edge), pan doesn't shift
-        console.log(`Pan before: (${panX.toFixed(1)}, ${panY.toFixed(1)})`);
         panX -= widthChange * proportionX;
         panY -= heightChange * proportionY;
-        console.log(`Adjusting pan to (${panX.toFixed(1)}, ${panY.toFixed(1)})`);
 
         zoomLevel = newZoom;
 
         applyTransform();
-
-        // Update debug display after zoom
-        const pos = getMapMousePosition(e);
-        updateDebugDisplay(pos.x, pos.y);
     });
 
     // Pan with click and drag
@@ -423,10 +406,8 @@ function setupEventListeners() {
     let panStartY = 0;
 
     mapContainer.addEventListener('mousedown', (e) => {
-        console.log('Mousedown event', e.target, e.target.classList);
         // Only start dragging on left click and not on event markers
         if (e.button === 0 && !e.target.classList.contains('event-marker')) {
-            console.log('Starting drag');
             isDragging = true;
             dragStartX = e.clientX;
             dragStartY = e.clientY;
@@ -461,36 +442,17 @@ function setupEventListeners() {
         }
     });
 
+    // Reset zoom and pan on double click
+    mapContainer.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        zoomLevel = 1;
+        panX = 0;
+        panY = 0;
+        applyTransform();
+    });
+
     // Set initial cursor
     mapContainer.style.cursor = 'grab';
-
-    // Helper function to update debug display
-    function updateDebugDisplay(mouseX, mouseY) {
-        document.getElementById('debug-mouse-x').textContent = Math.round(mouseX);
-        document.getElementById('debug-mouse-y').textContent = Math.round(mouseY);
-        document.getElementById('debug-pan-x').textContent = Math.round(panX);
-        document.getElementById('debug-pan-y').textContent = Math.round(panY);
-        document.getElementById('debug-zoom').textContent = zoomLevel.toFixed(2);
-    }
-
-    // Helper function to get mouse position in scaled map coordinates
-    function getMapMousePosition(e) {
-        const mapImage = document.getElementById('map-image');
-        if (!mapImage) return { x: 0, y: 0 };
-
-        // Get mouse position relative to the transformed (scaled) map image
-        const imageRect = mapImage.getBoundingClientRect();
-        const mapX = e.clientX - imageRect.left;
-        const mapY = e.clientY - imageRect.top;
-
-        return { x: mapX, y: mapY };
-    }
-
-    // Debug: Track mouse position relative to map
-    mapContainer.addEventListener('mousemove', (e) => {
-        const pos = getMapMousePosition(e);
-        updateDebugDisplay(pos.x, pos.y);
-    });
 }
 
 // Toggle playback
