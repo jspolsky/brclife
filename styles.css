@@ -65,6 +65,10 @@ header h1 {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .map-viewport {
