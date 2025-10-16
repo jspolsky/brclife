@@ -28,10 +28,13 @@ I realized that with the data in the API it should be super easy just to make a 
 
 ## How to Run
 
+### Option 0: Just visit the vercel site 
+
+[See it running here!](https://brclife.vercel.app/)
+
 ### Option 1: Using Python's Built-in Server (Recommended)
 
 ```bash
-cd /Users/spolsky/Dropbox/src/brclife
 python3 -m http.server 8000
 ```
 
@@ -40,7 +43,6 @@ Then open your browser to: http://localhost:8000
 ### Option 2: Using Node.js http-server
 
 ```bash
-cd /Users/spolsky/Dropbox/src/brclife
 npx http-server -p 8000
 ```
 
