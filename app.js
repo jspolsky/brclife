@@ -108,9 +108,10 @@ function applyTransform() {
     const viewport = document.querySelector('.map-viewport');
     if (!viewport) return;
 
-    // Use matrix for proper transform order: scale at origin, then translate
-    // This is equivalent to: scale(zoomLevel) translate(panX/zoomLevel, panY/zoomLevel)
-    viewport.style.transform = `matrix(${zoomLevel}, 0, 0, ${zoomLevel}, ${panX}, ${panY})`;
+    // Use translate THEN scale
+    // This way panX and panY are in screen pixels (post-scale space)
+    viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    viewport.style.transformOrigin = '0 0';
 }
 
 // Generate time scale with day markers and hour ticks
@@ -367,29 +368,51 @@ function setupEventListeners() {
     mapContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
 
+        const mapImage = document.getElementById('map-image');
+        if (!mapImage) return;
+
         const zoomIntensity = 0.1;
         const delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
         const newZoom = Math.max(0.5, Math.min(5, zoomLevel + delta));
 
-        // Get mouse position relative to container
-        const rect = mapContainer.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        // Get current mouse position on the scaled map
+        const imageRect = mapImage.getBoundingClientRect();
+        const currentMouseX = e.clientX - imageRect.left;
+        const currentMouseY = e.clientY - imageRect.top;
 
-        // With matrix transform, the point under mouse in viewport coords is:
-        // viewportPoint = (containerPoint - pan) / zoom
-        const viewportX = (mouseX - panX) / zoomLevel;
-        const viewportY = (mouseY - panY) / zoomLevel;
+        // Get the map's current dimensions
+        const currentWidth = mapImage.offsetWidth * zoomLevel;
+        const currentHeight = mapImage.offsetHeight * zoomLevel;
 
-        // After zoom change, we want the same viewport point under the mouse:
-        // mouseX = panX + viewportX * newZoom
-        // So: panX = mouseX - viewportX * newZoom
-        panX = mouseX - viewportX * newZoom;
-        panY = mouseY - viewportY * newZoom;
+        // Calculate what proportion of the map the mouse is at (0-1)
+        const proportionX = currentMouseX / currentWidth;
+        const proportionY = currentMouseY / currentHeight;
+        console.log(`Mouse at (${currentMouseX.toFixed(1)}, ${currentMouseY.toFixed(1)}) on map, proportion (${proportionX.toFixed(3)}, ${proportionY.toFixed(3)})`);
+
+        // Calculate the new dimensions after zoom
+        const newWidth = mapImage.offsetWidth * newZoom;
+        const newHeight = mapImage.offsetHeight * newZoom;
+
+        // Calculate how much bigger/smaller the map got
+        const widthChange = newWidth - currentWidth;
+        const heightChange = newHeight - currentHeight;
+        console.log(`Zooming from ${zoomLevel.toFixed(2)} to ${newZoom.toFixed(2)}, size change (${widthChange.toFixed(1)}, ${heightChange.toFixed(1)})`);
+
+        // Adjust pan so the mouse stays at the same proportional position
+        // If mouse is at 50% (middle), pan shifts by half the size change
+        // If mouse is at 0% (left/top edge), pan doesn't shift
+        console.log(`Pan before: (${panX.toFixed(1)}, ${panY.toFixed(1)})`);
+        panX -= widthChange * proportionX;
+        panY -= heightChange * proportionY;
+        console.log(`Adjusting pan to (${panX.toFixed(1)}, ${panY.toFixed(1)})`);
 
         zoomLevel = newZoom;
 
         applyTransform();
+
+        // Update debug display after zoom
+        const pos = getMapMousePosition(e);
+        updateDebugDisplay(pos.x, pos.y);
     });
 
     // Pan with click and drag
@@ -440,6 +463,34 @@ function setupEventListeners() {
 
     // Set initial cursor
     mapContainer.style.cursor = 'grab';
+
+    // Helper function to update debug display
+    function updateDebugDisplay(mouseX, mouseY) {
+        document.getElementById('debug-mouse-x').textContent = Math.round(mouseX);
+        document.getElementById('debug-mouse-y').textContent = Math.round(mouseY);
+        document.getElementById('debug-pan-x').textContent = Math.round(panX);
+        document.getElementById('debug-pan-y').textContent = Math.round(panY);
+        document.getElementById('debug-zoom').textContent = zoomLevel.toFixed(2);
+    }
+
+    // Helper function to get mouse position in scaled map coordinates
+    function getMapMousePosition(e) {
+        const mapImage = document.getElementById('map-image');
+        if (!mapImage) return { x: 0, y: 0 };
+
+        // Get mouse position relative to the transformed (scaled) map image
+        const imageRect = mapImage.getBoundingClientRect();
+        const mapX = e.clientX - imageRect.left;
+        const mapY = e.clientY - imageRect.top;
+
+        return { x: mapX, y: mapY };
+    }
+
+    // Debug: Track mouse position relative to map
+    mapContainer.addEventListener('mousemove', (e) => {
+        const pos = getMapMousePosition(e);
+        updateDebugDisplay(pos.x, pos.y);
+    });
 }
 
 // Toggle playback
