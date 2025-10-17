@@ -205,7 +205,18 @@ function parseCampLocation(location, campName) {
         }
     }
 
-    if (!street) return null;
+    // If no street found in arcStreet, check if it's in frontage (for plaza locations)
+    if (!street) {
+        // Try to find street in the other field (frontage)
+        const frontageStreetMatch = frontage.match(/([A-L])/i);
+        if (frontageStreetMatch) {
+            street = frontageStreetMatch[1].toUpperCase();
+            // For plazas, we still need a radial position
+            // Keep the radial we already parsed from intersection
+        } else {
+            return null;
+        }
+    }
 
     // Convert time to angle in radians
     // 6:00 = π radians (straight down/south)
